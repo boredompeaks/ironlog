@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>IronLog — Personal Strength Trainer</title>
+<style>
+/* ============================================================
+   GLOBAL STYLES
+   A lightweight, Tailwind-inspired utility + component system.
+   ============================================================ */
+:root{
+  --bg:#0f1115; --surface:#171a21; --surface2:#1f232c; --border:#2a2f3a;
+  --text:#eef0f3; --text-dim:#9aa2b1; --text-faint:#5c6273;
+  --accent:#4f8cff; --accent-dim:#294a80;
+  --good:#3ecf8e; --warn:#f5a623; --bad:#f0554e; --pb:#c98bff;
+  --radius:14px; --radius-sm:8px;
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  overscroll-behavior:none; user-select:none;}
+button,input,select,textarea{font-family:inherit; color:inherit;}
+#app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding-top:calc(var(--safe-top) + 10px);}
+.screen{flex:1; padding:0 16px 90px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+h1{font-size:22px;font-weight:700;margin:8px 0 4px;}
+h2{font-size:17px;font-weight:600;margin:18px 0 8px;color:var(--text);}
+p.sub{color:var(--text-dim); font-size:13px; margin:0 0 14px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px; margin-bottom:12px;}
+.card.tight{padding:10px 14px;}
+.row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.badge{font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600;}
+.badge.good{background:rgba(62,207,142,.15); color:var(--good);}
+.badge.warn{background:rgba(245,166,35,.15); color:var(--warn);}
+.badge.bad{background:rgba(240,85,78,.15); color:var(--bad);}
+.badge.pb{background:rgba(201,139,255,.15); color:var(--pb);}
+.badge.neutral{background:var(--surface2); color:var(--text-dim);}
+.btn{display:block; width:100%; text-align:center; padding:13px; border-radius:var(--radius-sm);
+  border:none; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer;}
+.btn.secondary{background:var(--surface2); color:var(--text); border:1px solid var(--border);}
+.btn.ghost{background:transparent; color:var(--accent); padding:8px;}
+.btn.small{padding:8px 12px; font-size:13px; width:auto; display:inline-block;}
+.btn.danger{background:rgba(240,85,78,.15); color:var(--bad);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px;}
+.field input, .field select, .field textarea{width:100%; padding:11px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px;}
+/* O1-O4: field-level validation error highlight */
+.field input.error, .field select.error { border-color: var(--bad); }
+
+.choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.choice{padding:14px 10px; text-align:center; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:var(--radius-sm); cursor:pointer; font-size:14px;}
+.choice.selected{border-color:var(--accent); background:var(--accent-dim); color:#fff;}
+.info-icon{width:18px; height:18px; border-radius:50%; background:var(--surface2); color:var(--text-dim);
+  display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+  border:1px solid var(--border); cursor:pointer; flex-shrink:0;}
+.list-item{display:flex; align-items:center; justify-content:space-between; padding:12px 0;
+  border-bottom:1px solid var(--border);}
+.list-item:last-child{border-bottom:none;}
+.muscle-tag{font-size:10px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-faint);}
+.progress-bar{height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; margin-top:6px;}
+.progress-fill{height:100%; border-radius:4px;}
+nav.tabbar{position:fixed; bottom:0; left:0; right:0; background:rgba(23,26,33,.96);
+  backdrop-filter:blur(10px); border-top:1px solid var(--border); display:flex;
+  padding-bottom:var(--safe-bottom); max-width:520px; margin:0 auto;}
+nav.tabbar .tab{flex:1; text-align:center; padding:10px 0 8px; cursor:pointer; color:var(--text-faint); font-size:10px;}
+nav.tabbar .tab.active{color:var(--accent);}
+nav.tabbar .tab .icon{font-size:20px; display:block; margin-bottom:2px;}
+.modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:flex-end;
+  z-index:50;}
+.modal-sheet{background:var(--surface); width:100%; max-width:520px; margin:0 auto; border-radius:20px 20px 0 0;
+  padding:18px 16px calc(24px + var(--safe-bottom)); max-height:82vh; overflow-y:auto;}
+.modal-sheet .handle{width:36px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 14px;}
+
+/* A3 — modal sub-label for destructive confirm */
+.modal-sheet .danger-msg { font-size: 14px; color: var(--text-dim); margin: 8px 0 18px; line-height: 1.5; }
+
+.stepper{display:flex; align-items:center; gap:10px;}
+.stepper button{width:38px; height:38px; border-radius:50%; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text); font-size:18px; cursor:pointer;}
+.stepper input{text-align:center; width:60px;}
+.toast{position:fixed; top:calc(var(--safe-top) + 8px); left:16px; right:16px; max-width:488px; margin:0 auto;
+  background:var(--surface2); border:1px solid var(--border); padding:12px 14px; border-radius:var(--radius-sm);
+  font-size:13px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.set-row{display:grid; grid-template-columns:24px 1fr 1fr 30px; gap:8px; align-items:center; margin-bottom:8px;}
+.set-row input{padding:8px; text-align:center;}
+.empty-state{text-align:center; padding:40px 20px; color:var(--text-faint);}
+::-webkit-scrollbar{display:none;}
+
+/* C1: Rest Timer Bar */
+.rest-timer-bar {
+  position: fixed;
+  top: calc(var(--safe-top) + 8px);
+  right: 16px;
+  background: var(--accent);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(79,140,255,.4);
+  animation: restBarSlideIn .2s ease;
+}
+@keyframes restBarSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rest-timer-bar .dismiss {
+  background: rgba(255,255,255,.25);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="screen" id="screen"></div><nav class="tabbar" id="tabbar" style="display:none"></nav></div>
+
+<!-- Capacitor Core Scripts (auto-injected by Capacitor on device) -->
+<!-- <script src="capacitor.js"></script> -->
+
+<!-- Modularized IronLog Scripts -->
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/engines.js"></script>
+<script src="js/report.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/boot.js"></script>
+
+</body>
+</html>
